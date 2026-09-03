@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Transparansi & APBDes Desa</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- PapaParse CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="font-sans min-h-screen flex flex-col justify-between antialiased selection:bg-brand-500 selection:text-white">
+
+  <!-- TOP BANNER / HEADER HERO -->
+  <header class="relative bg-gradient-to-r from-emerald-900 via-teal-800 to-indigo-900 text-white pt-8 pb-20 px-4 sm:px-6 lg:px-8 shadow-xl overflow-hidden">
+    <!-- Decorative background elements -->
+    <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+    <div class="absolute -right-10 -bottom-10 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
+    
+    <div class="max-w-7xl mx-auto relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-5 text-center md:text-left">
+        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/10 backdrop-blur-md p-3 border border-white/20 shadow-2xl flex items-center justify-center shrink-0">
+          <i class="fa-solid me-0 text-emerald-300 text-4xl sm:text-5xl fa-landmark"></i>
+        </div>
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-200 text-xs font-semibold tracking-wide uppercase mb-2 border border-emerald-400/30">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            Portal Resmi Keterbukaan Publik
+          </div>
+          <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-white drop-shadow-sm">
+            Dashboard Transparansi & APBDes
+          </h1>
+          <p class="text-slate-300 text-sm sm:text-base mt-1 max-w-2xl">
+            Laporan Realisasi Anggaran Pendapatan dan Belanja Desa demi mewujudkan tata kelola pemerintahan desa yang bersih, akuntabel, dan partisipatif.
+          </p>
+        </div>
+      </div>
+
+      <!-- Action / Metadata -->
+      <div class="flex flex-col sm:flex-row md:flex-col items-center md:items-end gap-3 w-full md:w-auto">
+        <div class="text-xs text-emerald-200 bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 w-full md:w-auto text-center md:text-right">
+          <i class="fa-regular fa-calendar-check mr-1"></i> Tahun Anggaran: <span class="font-bold text-white">2026</span>
+        </div>
+        <button onclick="window.print()" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white text-emerald-900 font-bold text-sm shadow-lg hover:bg-emerald-50 transition-all duration-200 active:scale-95">
+          <i class="fa-solid fa-print"></i> Cetak Laporan
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-20 w-full mb-12 flex-1">
+
+    <!-- DATA SOURCE STATUS BANNER -->
+    <div id="dataSourceStatus" class="mb-6 p-4 rounded-2xl bg-white border border-slate-200 shadow-md flex items-center gap-3 text-xs sm:text-sm text-slate-600">
+      <i class="fa-solid fa-circle-notch animate-spin text-emerald-600 text-lg"></i>
+      <span>Memuat status data...</span>
+    </div>
+
+    <!-- SUMMARY KPI CARDS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+      
+      <!-- Card 1: Total Pendapatan -->
+      <div class="glass-card rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+        <div class="absolute top-0 left-0 right-0 h-1 bg-emerald-500"></div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Pendapatan</span>
+          <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
+            <i class="fa-solid fa-wallet text-lg"></i>
+          </div>
+        </div>
+        <div class="text-xl sm:text-2xl font-black text-slate-800 font-mono" id="kpiPendapatan">Rp 0</div>
+        <div class="mt-3 flex items-center justify-between text-xs text-slate-500">
+          <span>Target: <span id="targetPendapatan" class="font-mono font-medium">Rp 0</span></span>
+          <span id="persenPendapatan" class="font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">0%</span>
+        </div>
+      </div>
+
+      <!-- Card 2: Total Belanja -->
+      <div class="glass-card rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+        <div class="absolute top-0 left-0 right-0 h-1 bg-indigo-500"></div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Belanja</span>
+          <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
+            <i class="fa-solid fa-cart-shopping text-lg"></i>
+          </div>
+        </div>
+        <div class="text-xl sm:text-2xl font-black text-slate-800 font-mono" id="kpiBelanja">Rp 0</div>
+        <div class="mt-3 flex items-center justify-between text-xs text-slate-500">
+          <span>Anggaran: <span id="anggaranBelanja" class="font-mono font-medium">Rp 0</span></span>
+          <span id="persenBelanja" class="font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">0%</span>
+        </div>
+      </div>
+
+      <!-- Card 3: Surplus / Defisit -->
+      <div class="glass-card rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+        <div class="absolute top-0 left-0 right-0 h-1 bg-amber-500"></div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Surplus / Defisit</span>
+          <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold">
+            <i class="fa-solid fa-scale-balanced text-lg"></i>
+          </div>
+        </div>
+        <div class="text-xl sm:text-2xl font-black text-slate-800 font-mono" id="kpiSurplus">Rp 0</div>
+        <div class="mt-3 text-xs text-slate-500 flex items-center gap-1">
+          <i class="fa-solid fa-circle-info text-slate-400"></i>
+          <span>Selisih Pendapatan - Belanja</span>
+        </div>
+      </div>
+
+      <!-- Card 4: Rata-Rata Serapan -->
+      <div class="glass-card rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+        <div class="absolute top-0 left-0 right-0 h-1 bg-teal-500"></div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Tingkat Serapan</span>
+          <div class="w-10 h-10 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center font-bold">
+            <i class="fa-solid fa-chart-line text-lg"></i>
+          </div>
+        </div>
+        <div class="text-xl sm:text-2xl font-black text-slate-800 font-mono" id="kpiSerapan">0%</div>
+        <div class="w-full bg-slate-100 rounded-full h-2 mt-3 overflow-hidden">
+          <div id="kpiSerapanBar" class="bg-teal-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- VISUAL CHARTS SECTION -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <!-- Main Chart: Anggaran vs Realisasi per Bidang -->
+      <div class="lg:col-span-2 glass-card rounded-2xl p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h3 class="text-lg font-bold text-slate-800">Grafik Realisasi Anggaran per Bidang</h3>
+            <p class="text-xs text-slate-500">Perbandingan antara Pagu Anggaran dan Realisasi Kegiatan</p>
+          </div>
+          <div class="hidden sm:flex items-center gap-2 text-xs font-semibold">
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-500 inline-block"></span> Anggaran</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-indigo-500 inline-block"></span> Realisasi</span>
+          </div>
+        </div>
+        <div class="relative h-72 sm:h-80 w-full">
+          <canvas id="chartBidang"></canvas>
+        </div>
+      </div>
+
+      <!-- Donut Chart: Komposisi Pendapatan -->
+      <div class="glass-card rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+        <div>
+          <h3 class="text-lg font-bold text-slate-800 mb-1">Sumber Pendapatan</h3>
+          <p class="text-xs text-slate-500 mb-4">Proporsi penerimaan kas desa</p>
+          <div class="relative h-56 sm:h-64 w-full flex items-center justify-center">
+            <canvas id="chartPendapatan"></canvas>
+          </div>
+        </div>
+        <div id="legendPendapatan" class="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 gap-1 text-xs"></div>
+      </div>
+    </div>
+
+    <!-- NAVIGATION TABS & TABULAR DATA -->
+    <div class="glass-card rounded-2xl shadow-sm overflow-hidden mb-8">
+      
+      <!-- TAB BUTTONS -->
+      <div class="flex border-b border-slate-200 bg-slate-50/70 p-1.5 overflow-x-auto custom-scrollbar">
+        <button onclick="switchTab('apbdes')" id="tabBtn-apbdes" class="tab-btn active font-bold text-sm px-5 py-2.5 rounded-xl transition-all duration-200 flex items-center gap-2 bg-white text-emerald-700 shadow-sm">
+          <i class="fa-solid fa-list-check"></i> Realisasi per Bidang
+        </button>
+        <button onclick="switchTab('pendapatan')" id="tabBtn-pendapatan" class="tab-btn font-semibold text-sm px-5 py-2.5 rounded-xl text-slate-600 hover:text-slate-900 transition-all duration-200 flex items-center gap-2">
+          <i class="fa-solid fa-hand-holding-dollar"></i> Rincian Pendapatan
+        </button>
+        <button onclick="switchTab('profil')" id="tabBtn-profil" class="tab-btn font-semibold text-sm px-5 py-2.5 rounded-xl text-slate-600 hover:text-slate-900 transition-all duration-200 flex items-center gap-2">
+          <i class="fa-solid fa-users-viewfinder"></i> Profil & Demografi Desa
+        </button>
+      </div>
+
+      <!-- TAB CONTENT 1: REALISASI PER BIDANG -->
+      <div id="tabContent-apbdes" class="tab-content p-4 sm:p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <div>
+            <h4 class="text-base font-bold text-slate-800">Rincian Anggaran & Realisasi per Bidang</h4>
+            <p class="text-xs text-slate-500">Transparansi alokasi dana desa untuk setiap sektor pembangunan</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-200">
+          <table class="w-full text-left text-sm text-slate-600">
+            <thead class="bg-slate-100/80 text-xs font-bold uppercase tracking-wider text-slate-700 border-b border-slate-200">
+              <tr>
+                <th class="py-3.5 px-4">Nama Bidang</th>
+                <th class="py-3.5 px-4">Sumber Dana</th>
+                <th class="py-3.5 px-4 text-right">Anggaran (Rp)</th>
+                <th class="py-3.5 px-4 text-right">Realisasi (Rp)</th>
+                <th class="py-3.5 px-4 text-center">Persentase Serapan</th>
+              </tr>
+            </thead>
+            <tbody id="apbdesTableBody" class="divide-y divide-slate-200 bg-white">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB CONTENT 2: RINCIAN PENDAPATAN -->
+      <div id="tabContent-pendapatan" class="tab-content hidden p-4 sm:p-6">
+        <div class="mb-4">
+          <h4 class="text-base font-bold text-slate-800">Rincian Sumber Pendapatan Desa</h4>
+          <p class="text-xs text-slate-500">Daftar penerimaan dari Transfer Pusat, Daerah, PADes, dan Lainnya</p>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-200">
+          <table class="w-full text-left text-sm text-slate-600">
+            <thead class="bg-slate-100/80 text-xs font-bold uppercase tracking-wider text-slate-700 border-b border-slate-200">
+              <tr>
+                <th class="py-3.5 px-4">Jenis / Sumber Pendapatan</th>
+                <th class="py-3.5 px-4 text-right">Target (Rp)</th>
+                <th class="py-3.5 px-4 text-right">Realisasi (Rp)</th>
+                <th class="py-3.5 px-4 text-center">Status Capaian</th>
+              </tr>
+            </thead>
+            <tbody id="pendapatanTableBody" class="divide-y divide-slate-200 bg-white">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB CONTENT 3: PROFIL DESA -->
+      <div id="tabContent-profil" class="tab-content hidden p-4 sm:p-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="md:col-span-2 space-y-4">
+            <h4 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-circle-info text-emerald-600"></i> Tentangg Desa
+            </h4>
+            <p id="deskripsiDesa" class="text-slate-600 text-sm leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-200">
+              Desa ini berkomitmen menyajikan transparansi publik penuh dalam mengelola dana desa guna meningkatkan kesejahteraan dan infrastruktur masyarakat.
+            </p>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
+              <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-center">
+                <i class="fa-solid fa-users text-2xl text-emerald-600 mb-1"></i>
+                <div class="text-xs font-semibold text-slate-500">Penduduk</div>
+                <div id="statPenduduk" class="text-lg font-bold text-slate-800 font-mono">-</div>
+              </div>
+              <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-center">
+                <i class="fa-solid fa-house-user text-2xl text-indigo-600 mb-1"></i>
+                <div class="text-xs font-semibold text-slate-500">Kepala Keluarga</div>
+                <div id="statKK" class="text-lg font-bold text-slate-800 font-mono">-</div>
+              </div>
+              <div class="bg-amber-50 border border-amber-100 rounded-xl p-4 text-center">
+                <i class="fa-solid fa-map-location-dot text-2xl text-amber-600 mb-1"></i>
+                <div class="text-xs font-semibold text-slate-500">Luas Wilayah</div>
+                <div id="statLuas" class="text-lg font-bold text-slate-800 font-mono">-</div>
+              </div>
+              <div class="bg-teal-50 border border-teal-100 rounded-xl p-4 text-center">
+                <i class="fa-solid fa-layer-group text-2xl text-teal-600 mb-1"></i>
+                <div class="text-xs font-semibold text-slate-500">Dusun / RT</div>
+                <div id="statDusun" class="text-lg font-bold text-slate-800 font-mono">-</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 text-white flex flex-col justify-between shadow-lg">
+            <div>
+              <div class="inline-block bg-emerald-500 text-xs font-bold px-2.5 py-1 rounded-md mb-3">Kontak & Layanan</div>
+              <h5 class="font-bold text-lg mb-2">Pemerintah Desa</h5>
+              <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                Ada pertanyaan atau aspirasi terkait penggunaan APBDes? Hubungi kantor desa kami.
+              </p>
+              <div class="space-y-2 text-xs text-slate-300">
+                <p class="flex items-center gap-2"><i class="fa-solid fa-clock text-emerald-400"></i> Jam Kerja: Senin - Jumat (08:00 - 15:00)</p>
+                <p class="flex items-center gap-2"><i class="fa-solid fa-envelope text-emerald-400"></i> Email: info@desa.go.id</p>
+              </div>
+            </div>
+            <div class="mt-6 pt-4 border-t border-slate-700 text-center text-xs text-slate-400">
+              Transparansi Untuk Desa Maju
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-slate-900 text-slate-400 py-8 px-4 text-center text-xs border-t border-slate-800">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2 text-slate-300 font-semibold">
+        <i class="fa-solid fa-shield-halved text-emerald-500 text-base"></i>
+        <span>Portal Resmi Informasi APBDes & Keterbukaan Publik</span>
+      </div>
+      <div>
+        &copy; 2026 Pemerintah Desa. Hak Cipta Dilindungi Undang-Undang.
+      </div>
+    </div>
+  </footer>
+
+  <!-- SCRIPT LOGIC -->
+  <script>
+    /* ============================================================
+       GOOGLE SHEETS / DATA CONFIG & FALLBACKS
+       ============================================================ */
+    const CONFIG = {
+      // Masukkan URL Publik CSV Google Sheets jika tersedia
+      sheets: {
+        summary: "",
+        pendapatan: "",
+        bidang: "",
+        profil: ""
+      }
+    };
+
+    // Data Bawaan Fallback (Apabila Google Sheets Belum Dikonfigurasi)
+    const FALLBACK_DATA = {
+      summary: {
+        totalPendapatanTarget: 1450000000,
+        totalPendapatanRealisasi: 1280000000,
+        totalBelanjaAnggaran: 1420000000,
+        totalBelanjaRealisasi: 1150000000,
+        surplusDefisit: 1300000000
+      },
+      pendapatan: [
+        { nama: "Dana Desa (DDS)", target: 800000000, realisasi: 800000000 },
+        { nama: "Alokasi Dana Desa (ADD)", target: 450000000, realisasi: 350000000 },
+        { nama: "Pendapatan Asli Desa (PADes)", target: 120000000, realisasi: 80000000 },
+        { nama: "Bagi Hasil Pajak & Retribusi", target: 80000000, realisasi: 50000000 }
+      ],
+      bidang: [
+        { nama: "Penyelenggaraan Pemerintahan Desa", sumber: "ADD / PADes", anggaran: 420000000, realisasi: 380000000 },
+        { nama: "Pelaksanaan Pembangunan Desa", sumber: "DDS", anggaran: 580000000, realisasi: 490000000 },
+        { nama: "Pembinaan Kemasyarakatan", sumber: "ADD", anggaran: 150000000, realisasi: 110000000 },
+        { nama: "Pemberdayaan Masyarakat", sumber: "DDS / Bantuan", anggaran: 190000000, realisasi: 130000000 },
+        { nama: "Penanggulangan Bencana & Darurat", sumber: "DDS", anggaran: 80000000, realisasi: 40000000 }
+      ],
+      profil: {
+        deskripsi: "Desa kami merupakan kawasan yang mandiri, asri, dan berteknologi dengan komitmen transparansi anggaran publik 100% untuk kesejahteraan warga desa.",
+        penduduk: "3.842 Jiwa",
+        kk: "1.120 KK",
+        luas: "12,4 km²",
+        dusun: "4 Dusun / 18 RT"
+      }
+    };
+
+    let chartBidangInstance = null;
+    let chartPendapatanInstance = null;
+
+    /* ============================================================
+       HELPER FUNCTIONS
+       ============================================================ */
+    function rupiah(val) {
+      if (typeof val !== "number") val = parseFloat(val) || 0;
+      return "Rp " + val.toLocaleString("id-ID");
+    }
+
+    function serapanBadge(percent) {
+      let badgeClass = "bg-slate-100 text-slate-700 border-slate-300";
+      let label = "Rendah";
+
+      if (percent >= 85) {
+        badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200";
+        label = "Tinggi";
+      } else if (percent >= 50) {
+        badgeClass = "bg-amber-50 text-amber-700 border-amber-200";
+        label = "Sedang";
+      } else {
+        badgeClass = "bg-rose-50 text-rose-700 border-rose-200";
+        label = "Rendah";
+      }
+
+      return `
+        <div class="flex items-center justify-center gap-2">
+          <div class="w-16 bg-slate-200 rounded-full h-1.5 overflow-hidden hidden sm:block">
+            <div class="bg-emerald-500 h-1.5 rounded-full" style="width: ${Math.min(percent, 100)}%"></div>
+          </div>
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-bold border ${badgeClass}">
+            ${percent.toFixed(1)}% (${label})
+          </span>
+        </div>
+      `;
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active', 'bg-white', 'text-emerald-700', 'shadow-sm', 'font-bold');
+        btn.classList.add('text-slate-600', 'font-semibold');
+      });
+
+      const activeContent = document.getElementById(`tabContent-${tabName}`);
+      const activeBtn = document.getElementById(`tabBtn-${tabName}`);
+
+      if (activeContent) activeContent.classList.remove('hidden');
+      if (activeBtn) {
+        activeBtn.classList.add('active', 'bg-white', 'text-emerald-700', 'shadow-sm', 'font-bold');
+        activeBtn.classList.remove('text-slate-600');
+      }
+    }
+
+    /* ============================================================
+       DATA LOAD & PARSER
+       ============================================================ */
+    async function loadData() {
+      const usingFallback = [];
+      const data = {};
+
+      // Load Summary
+      if (CONFIG.sheets.summary) {
+        try {
+          data.summary = await fetchCSV(CONFIG.sheets.summary);
+        } catch(e) {
+          data.summary = FALLBACK_DATA.summary;
+          usingFallback.push("Ringkasan");
+        }
+      } else {
+        data.summary = FALLBACK_DATA.summary;
+        usingFallback.push("Ringkasan");
+      }
+
+      // Load Pendapatan
+      if (CONFIG.sheets.pendapatan) {
+        try {
+          data.pendapatan = await fetchCSV(CONFIG.sheets.pendapatan);
+        } catch(e) {
+          data.pendapatan = FALLBACK_DATA.pendapatan;
+          usingFallback.push("Pendapatan");
+        }
+      } else {
+        data.pendapatan = FALLBACK_DATA.pendapatan;
+        usingFallback.push("Pendapatan");
+      }
+
+      // Load Bidang
+      if (CONFIG.sheets.bidang) {
+        try {
+          data.bidang = await fetchCSV(CONFIG.sheets.bidang);
+        } catch(e) {
+          data.bidang = FALLBACK_DATA.bidang;
+          usingFallback.push("Bidang");
+        }
+      } else {
+        data.bidang = FALLBACK_DATA.bidang;
+        usingFallback.push("Bidang");
+      }
+
+      // Load Profil
+      if (CONFIG.sheets.profil) {
+        try {
+          data.profil = await fetchCSV(CONFIG.sheets.profil);
+        } catch(e) {
+          data.profil = FALLBACK_DATA.profil;
+          usingFallback.push("Profil");
+        }
+      } else {
+        data.profil = FALLBACK_DATA.profil;
+        usingFallback.push("Profil");
+      }
+
+      return { data, usingFallback };
+    }
+
+    function fetchCSV(url) {
+      return new Promise((resolve, reject) => {
+        if (typeof Papa === 'undefined') return reject('PapaParse not loaded');
+        Papa.parse(url, {
+          download: true,
+          header: true,
+          dynamicTyping: true,
+          complete: (results) => resolve(results.data),
+          error: (err) => reject(err)
+        });
+      });
+    }
+
+    /* ============================================================
+       RENDER FUNCTIONS
+       ============================================================ */
+    function renderDashboard(data) {
+      const { summary, pendapatan, bidang, profil } = data;
+
+      // 1. KPI Cards
+      const pctPendapatan = summary.totalPendapatanTarget ? (summary.totalPendapatanRealisasi / summary.totalPendapatanTarget * 100) : 0;
+      const pctBelanja = summary.totalBelanjaAnggaran ? (summary.totalBelanjaRealisasi / summary.totalBelanjaAnggaran * 100) : 0;
+      const surplus = summary.totalPendapatanRealisasi - summary.totalBelanjaRealisasi;
+
+      document.getElementById("kpiPendapatan").textContent = rupiah(summary.totalPendapatanRealisasi);
+      document.getElementById("targetPendapatan").textContent = rupiah(summary.totalPendapatanTarget);
+      document.getElementById("persenPendapatan").textContent = pctPendapatan.toFixed(1) + "%";
+
+      document.getElementById("kpiBelanja").textContent = rupiah(summary.totalBelanjaRealisasi);
+      document.getElementById("anggaranBelanja").textContent = rupiah(summary.totalBelanjaAnggaran);
+      document.getElementById("persenBelanja").textContent = pctBelanja.toFixed(1) + "%";
+
+      const surplusEl = document.getElementById("kpiSurplus");
+      surplusEl.textContent = rupiah(surplus);
+      if (surplus >= 0) {
+        surplusEl.className = "text-xl sm:text-2xl font-black text-emerald-600 font-mono";
+      } else {
+        surplusEl.className = "text-xl sm:text-2xl font-black text-rose-600 font-mono";
+      }
+
+      document.getElementById("kpiSerapan").textContent = pctBelanja.toFixed(1) + "%";
+      document.getElementById("kpiSerapanBar").style.width = Math.min(pctBelanja, 100) + "%";
+
+      // 2. Render Bidang Table
+      const apbdesBody = document.getElementById("apbdesTableBody");
+      apbdesBody.innerHTML = "";
+      bidang.forEach(b => {
+        const serapan = b.anggaran ? (b.realisasi / b.anggaran * 100) : 0;
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-slate-50 transition-colors";
+        tr.innerHTML = `
+          <td class="py-3.5 px-4 font-semibold text-slate-800">${b.nama}</td>
+          <td class="py-3.5 px-4 text-xs font-medium text-slate-500"><span class="bg-slate-100 px-2 py-1 rounded-md border border-slate-200">${b.sumber}</span></td>
+          <td class="py-3.5 px-4 text-right font-mono font-medium">${rupiah(b.anggaran)}</td>
+          <td class="py-3.5 px-4 text-right font-mono font-medium">${b.realisasi > 0 ? rupiah(b.realisasi) : '—'}</td>
+          <td class="py-3.5 px-4 text-center">${b.realisasi > 0 ? serapanBadge(serapan) : '<span class="text-xs text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full">Belum Lapor</span>'}</td>
+        `;
+        apbdesBody.appendChild(tr);
+      });
+
+      // 3. Render Pendapatan Table
+      const pendapatanBody = document.getElementById("pendapatanTableBody");
+      pendapatanBody.innerHTML = "";
+      pendapatan.forEach(p => {
+        const pct = p.target ? (p.realisasi / p.target * 100) : 0;
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-slate-50 transition-colors";
+        tr.innerHTML = `
+          <td class="py-3.5 px-4 font-semibold text-slate-800">${p.nama}</td>
+          <td class="py-3.5 px-4 text-right font-mono font-medium">${rupiah(p.target)}</td>
+          <td class="py-3.5 px-4 text-right font-mono font-medium">${rupiah(p.realisasi)}</td>
+          <td class="py-3.5 px-4 text-center">${serapanBadge(pct)}</td>
+        `;
+        pendapatanBody.appendChild(tr);
+      });
+
+      // 4. Render Profil
+      if (profil) {
+        document.getElementById("deskripsiDesa").textContent = profil.deskripsi || FALLBACK_DATA.profil.deskripsi;
+        document.getElementById("statPenduduk").textContent = profil.penduduk || FALLBACK_DATA.profil.penduduk;
+        document.getElementById("statKK").textContent = profil.kk || FALLBACK_DATA.profil.kk;
+        document.getElementById("statLuas").textContent = profil.luas || FALLBACK_DATA.profil.luas;
+        document.getElementById("statDusun").textContent = profil.dusun || FALLBACK_DATA.profil.dusun;
+      }
+
+      // 5. Render Charts
+      renderCharts(bidang, pendapatan);
+    }
+
+    function renderCharts(bidang, pendapatan) {
+      // Chart 1: Bidang Bar Chart
+      const ctxBidang = document.getElementById('chartBidang').getContext('2d');
+      if (chartBidangInstance) chartBidangInstance.destroy();
+
+      const labelsBidang = bidang.map(b => b.nama.length > 25 ? b.nama.substring(0, 22) + '...' : b.nama);
+      const dataAnggaran = bidang.map(b => b.anggaran);
+      const dataRealisasi = bidang.map(b => b.realisasi);
+
+      chartBidangInstance = new Chart(ctxBidang, {
+        type: 'bar',
+        data: {
+          labels: labelsBidang,
+          datasets: [
+            {
+              label: 'Anggaran',
+              data: dataAnggaran,
+              backgroundColor: '#10b981',
+              borderRadius: 6
+            },
+            {
+              label: 'Realisasi',
+              data: dataRealisasi,
+              backgroundColor: '#6366f1',
+              borderRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return 'Rp ' + (value / 1000000).toLocaleString('id-ID') + ' Jt';
+                },
+                font: { family: 'Plus Jakarta Sans', size: 10 }
+              },
+              grid: { color: '#f1f5f9' }
+            },
+            x: {
+              ticks: { font: { family: 'Plus Jakarta Sans', size: 10 } },
+              grid: { display: false }
+            }
+          }
+        }
+      });
+
+      // Chart 2: Pendapatan Donut Chart
+      const ctxPendapatan = document.getElementById('chartPendapatan').getContext('2d');
+      if (chartPendapatanInstance) chartPendapatanInstance.destroy();
+
+      const labelsPendapatan = pendapatan.map(p => p.nama);
+      const dataPendapatanVal = pendapatan.map(p => p.realisasi);
+      const colors = ['#10b981', '#6366f1', '#f59e0b', '#06b6d4', '#ec4899'];
+
+      chartPendapatanInstance = new Chart(ctxPendapatan, {
+        type: 'doughnut',
+        data: {
+          labels: labelsPendapatan,
+          datasets: [{
+            data: dataPendapatanVal,
+            backgroundColor: colors,
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          cutout: '70%'
+        }
+      });
+
+      // Render custom legend for donut chart
+      const legendEl = document.getElementById('legendPendapatan');
+      legendEl.innerHTML = '';
+      pendapatan.forEach((p, idx) => {
+        const item = document.createElement('div');
+        item.className = 'flex items-center justify-between text-slate-600';
+        item.innerHTML = `
+          <div class="flex items-center gap-2 truncate">
+            <span class="w-2.5 h-2.5 rounded-full inline-block shrink-0" style="background-color: ${colors[idx % colors.length]}"></span>
+            <span class="truncate">${p.nama}</span>
+          </div>
+          <span class="font-mono font-bold text-slate-800 ml-2">${rupiah(p.realisasi)}</span>
+        `;
+        legendEl.appendChild(item);
+      });
+    }
+
+    /* ============================================================
+       INIT BOOTSTRAP
+       ============================================================ */
+    (async function init() {
+      const statusEl = document.getElementById("dataSourceStatus");
+      try {
+        const { data, usingFallback } = await loadData();
+        renderDashboard(data);
+
+        if (statusEl) {
+          if (usingFallback.length === 4) {
+            statusEl.className = "mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 flex items-center gap-3 text-xs sm:text-sm";
+            statusEl.innerHTML = `
+              <i class="fa-solid fa-triangle-exclamation text-amber-600 text-lg"></i>
+              <span><strong>Mode Bawaan:</strong> Menggunakan data default (Google Sheets belum dikonfigurasi pada file).</span>
+            `;
+          } else if (usingFallback.length > 0) {
+            statusEl.className = "mb-6 p-4 rounded-2xl bg-blue-50 border border-blue-200 text-blue-800 flex items-center gap-3 text-xs sm:text-sm";
+            statusEl.innerHTML = `
+              <i class="fa-solid fa-circle-info text-blue-600 text-lg"></i>
+              <span>Sebagian data dimuat dari Google Sheets, sebagian lagi menggunakan data bawaan (${usingFallback.join(", ")}).</span>
+            `;
+          } else {
+            statusEl.className = "mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-3 text-xs sm:text-sm";
+            statusEl.innerHTML = `
+              <i class="fa-solid fa-circle-check text-emerald-600 text-lg"></i>
+              <span><strong>Data Terhubung:</strong> Memuat data langsung secara real-time dari Google Sheets.</span>
+            `;
+          }
+        }
+      } catch (err) {
+        console.error("Initialization Error:", err);
+        if (statusEl) {
+          statusEl.className = "mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 flex items-center gap-3 text-xs sm:text-sm";
+          statusEl.innerHTML = `
+            <i class="fa-solid fa-triangle-exclamation text-rose-600 text-lg"></i>
+            <span>Gagal memuat data Google Sheets. Menampilkan data standar.</span>
+          `;
+        }
+      }
+    })();
+  </script>
+</body>
+</html>

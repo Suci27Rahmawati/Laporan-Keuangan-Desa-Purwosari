@@ -782,19 +782,24 @@ tahun,kategori,kode,bidang_nama,bidang_sub,nama_item,anggaran,realisasi,rincian
                     responsive: true,
                     maintainAspectRatio: false,
                 plugins: {
-    legend: { display: false },
-    tooltip: {
-        callbacks: {
-            label: function(context) {
-                const value = context.raw;
-                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                const formattedValue = new Intl.NumberFormat('id-ID').format(value);
-                return `${context.label}: Rp ${formattedValue} (${percentage}%)`;
-            }
+                    tooltip: {
+    callbacks: {
+        title: function() {
+            return '';
+        },
+        label: function(context) {
+            const value = context.raw;
+            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+            const formattedValue = new Intl.NumberFormat('id-ID').format(value);
+            return [
+                context.label,
+                `Rp ${formattedValue}`,
+                `${percentage}%`
+            ];
         }
     }
-},  
+}
 
             // Render Custom Legend Bidang
             const legendContainer = document.getElementById('legend-bidang');
